@@ -51,10 +51,14 @@
       <f:form method="post" action="viewExport" name="viewExport">
         <f:submit name="viewExport" value="${%View Configuration}"/>
       </f:form>
+      <f:form method="post" action="exportPluginsToPom" name="exportPluginsToPom">
+        <f:submit name="exportPluginsToPom" value="${%Export Plugins to POM}"/>
+      </f:form>
       <div class="alert alert-warning clear-action-forms">
         <l:icon class="icon-warning icon-sm"/>
         ${%exportWarning}
       </div>
+      <br/>
 
       <h2>${%Reference}</h2>
       <dt>

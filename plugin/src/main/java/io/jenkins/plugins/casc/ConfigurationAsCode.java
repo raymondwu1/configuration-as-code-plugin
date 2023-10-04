@@ -13,6 +13,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Functions;
 import hudson.PluginManager;
+import hudson.PluginWrapper;
 import hudson.Util;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
@@ -29,6 +30,7 @@ import io.jenkins.plugins.casc.model.Scalar;
 import io.jenkins.plugins.casc.model.Scalar.Format;
 import io.jenkins.plugins.casc.model.Sequence;
 import io.jenkins.plugins.casc.model.Source;
+import io.jenkins.plugins.casc.MavenExporter;
 import io.jenkins.plugins.casc.yaml.YamlSource;
 import io.jenkins.plugins.casc.yaml.YamlUtils;
 import io.jenkins.plugins.prism.PrismConfiguration;
@@ -468,6 +470,33 @@ public class ConfigurationAsCode extends ManagementLink {
 
         res.setContentType("application/json; charset=utf-8");
         res.getWriter().print(writeJSONSchema());
+    }
+
+    /**
+     * Export list of plugins from live Jenkins instance as POM
+     * @throws Exception
+     */
+    @RequirePOST
+    public void doExportPluginsToPom(StaplerRequest req, StaplerResponse res) throws Exception {
+
+        if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            res.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        res.setContentType("text/xml; charset=utf-8");
+        res.addHeader("Content-Disposition", "attachment; filename=pom.xml");
+        exportPluginsToPom(res.getOutputStream());
+    }
+
+    @org.kohsuke.accmod.Restricted(NoExternalUse.class)
+    public void exportPluginsToPom(final OutputStream out) throws Exception {
+        final Jenkins instance = Jenkins.getInstance();
+        final PluginManager manager = instance.getPluginManager();
+        final List<PluginWrapper> plugins = manager.getPlugins();
+        try (final Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+            MavenExporter.exportPlugins(plugins, writer);
+        }
     }
 
     @RequirePOST
